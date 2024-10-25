@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Application</title>
+</head>
+<body>
+    <h1>Bank Application</h1>
+
+    <div id="loginSection">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button id="loginBtn">Login</button>
+    </div>
+
+    <div id="userSection" style="display: none;">
+        <h2>Welcome, <span id="usernameDisplay">Loading...</span></h2>
+    </div>
+
+    <div id="balanceSection" style="display: none;">
+        <h2>Your Balance: <span id="balance">Loading...</span></h2>
+        <button id="checkBalanceBtn">Check Balance</button>
+    </div>
+
+    <div id="transferSection" style="display: none;">
+        <h2>Transfer Money</h2>
+        <input type="text" id="to" placeholder="Transfer to (username)">
+        <input type="number" id="amount" placeholder="Amount">
+        <button id="transferBtn">Transfer</button>
+    </div>
+
+    <script>
+        // Function to log in the user
+        const loginUser = async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('http://localhost:3000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password }),
+                credentials: 'include' // Include cookies in the request
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('userSection').style.display = 'block';
+                document.getElementById('usernameDisplay').innerText = username;
+                fetchBalance(); // Fetch balance after successful login
+                document.getElementById('balanceSection').style.display = 'block';
+                document.getElementById('transferSection').style.display = 'block';
+            } else {
+                alert(data.message); // Show error message
+            }
+        };
+
+        // Function to fetch and display the balance
+        const fetchBalance = async () => {
+            const response = await fetch('http://localhost:3000/balance', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include' // Include cookies in the request
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('balance').innerText = data.balance; // Update the balance display
+            } else {
+                console.error('Error fetching balance:', response.statusText);
+                document.getElementById('balance').innerText = 'Error fetching balance';
+            }
+        };
+
+        // Event listener for the login button
+        document.getElementById('loginBtn').addEventListener('click', loginUser);
+
+        // Event listener for the check balance button
+        document.getElementById('checkBalanceBtn').addEventListener('click', fetchBalance);
+
+        // Event listener for the transfer button
+        document.getElementById('transferBtn').addEventListener('click', async () => {
+            const to = document.getElementById('to').value;
+            const amount = document.getElementById('amount').value;
+
+            const response = await fetch('http://localhost:3000/transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ to, amount }),
+                credentials: 'include' // Include cookies in the request
+            });
+
+            const data = await response.json();
+            alert(data.message); // Show transfer result message
+            fetchBalance(); // Refresh the balance after transfer
+        });
+    </script>
+</body>
+</html>

